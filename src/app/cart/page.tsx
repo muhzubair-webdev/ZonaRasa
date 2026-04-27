@@ -22,7 +22,7 @@ export default function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Flat shipping cost for Phase 2
-  const SHIPPING_COST = 5000
+  const SHIPPING_COST = 2000
   const subtotal = getCartTotal()
   const total = subtotal + (items.length > 0 ? SHIPPING_COST : 0)
 
@@ -56,18 +56,18 @@ export default function CartPage() {
         item => `- ${item.quantity}x ${item.name} (Rp ${(item.price * item.quantity).toLocaleString('id-ID')})`
       ).join('\n')
 
-      const message = `*EXPO EATS - NEW ORDER*
+      const message = `*Zona Rasa - NEW ORDER*
 
-*Name:* ${name}
+*Nama:* ${name}
 *WhatsApp:* ${whatsapp}
-*Address/Location:* ${location}
-*Notes:* ${notes || '-'}
+*Alamat:* ${location}
+*Catatan:* ${notes || '-'}
 
-*Order List:*
+*Daftar Pesanan:*
 ${orderListText}
 
 *Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}
-*Shipping Cost:* Rp ${SHIPPING_COST.toLocaleString('id-ID')}
+*Ongkir:* Rp ${SHIPPING_COST.toLocaleString('id-ID')}
 *Total:* Rp ${total.toLocaleString('id-ID')}
 
 Mohon segera diproses!`
