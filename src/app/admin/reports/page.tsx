@@ -40,7 +40,7 @@ export default function ReportsPage() {
       .select('*')
       .eq('status', 'completed')
       .order('created_at', { ascending: false })
-    
+
     if (data) setOrders(data)
     setIsLoading(false)
   }
@@ -50,14 +50,14 @@ export default function ReportsPage() {
 
     // Create CSV headers
     const headers = ["Date", "Order ID", "Customer Name", "WhatsApp", "Location", "Notes", "Items", "Shipping Cost", "Total Price"]
-    
+
     // Create CSV rows
     const rows = orders.map(order => {
       const date = new Date(order.created_at).toLocaleString('id-ID')
       const itemsStr = order.items.map(item => `${item.quantity}x ${item.name}`).join('; ')
       const notes = order.notes ? order.notes.replace(/,/g, ' ') : '' // Remove commas from notes for safe CSV
       const location = order.location_detail.replace(/,/g, ' ')
-      
+
       return [
         `"${date}"`,
         `"${order.id}"`,
@@ -88,7 +88,7 @@ export default function ReportsPage() {
   // Calculate Best Sellers
   const getBestSellers = (): BestSeller[] => {
     const itemMap = new Map<string, BestSeller>()
-    
+
     orders.forEach(order => {
       order.items.forEach(item => {
         const existing = itemMap.get(item.name)
@@ -120,8 +120,8 @@ export default function ReportsPage() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sales Report</h1>
-          <p className="text-muted-foreground">Overview of your expo performance (Completed orders only).</p>
+          <h1 className="text-3xl font-bold tracking-tight">Laporan Penjualan</h1>
+          <p className="text-muted-foreground">Statistik penjualan dari seluruh pesanan yang telah selesai.</p>
         </div>
         <Button onClick={downloadCSV} disabled={orders.length === 0} className="gap-2">
           <Download className="w-4 h-4" /> Download CSV
@@ -132,29 +132,29 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary">Rp {totalRevenue.toLocaleString('id-ID')}</div>
-            <p className="text-xs text-muted-foreground mt-1">From {totalOrders} completed orders</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{totalOrders}</div>
-            <p className="text-xs text-muted-foreground mt-1">Successfully fulfilled</p>
+            <p className="text-xs text-muted-foreground mt-1"> dari {totalOrders} pesanan yang selesai</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Average Order Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pesanan</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalOrders}</div>
+            <p className="text-xs text-muted-foreground mt-1">Berhasil dipenuhi</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Rata-rata Penjualan</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

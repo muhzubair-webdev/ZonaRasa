@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigation = [
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag },
     { name: 'Menus', href: '/admin/menus', icon: UtensilsCrossed },
-    { name: 'Reports', href: '/admin/reports', icon: LayoutDashboard },
+    { name: 'Laporan', href: '/admin/reports', icon: LayoutDashboard },
   ]
 
   return (
@@ -46,19 +46,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       `}>
         <div className="h-full flex flex-col">
           <div className="p-6 border-b hidden md:block">
-            <span className="font-bold text-2xl text-primary tracking-tight">Expo Admin</span>
+            <span className="font-bold text-2xl text-primary tracking-tight">Halaman Admin</span>
           </div>
-          
+
           <nav className="flex-1 px-4 py-6 space-y-2">
             {navigation.map((item) => {
               const isActive = pathname.startsWith(item.href)
               return (
                 <Link key={item.name} href={item.href}>
-                  <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${
-                    isActive 
-                      ? "bg-primary text-primary-foreground font-medium" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}>
+                  <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${isActive
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}>
                     <item.icon className="h-5 w-5" />
                     {item.name}
                   </div>
@@ -85,8 +84,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden" 
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}

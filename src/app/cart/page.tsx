@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Trash2, Plus, Minus, ArrowLeft } from "lucide-react"
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingCart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getCartTotal, clearCart } = useCartStore()
-  
+
   const [name, setName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
   const [location, setLocation] = useState("")
@@ -74,18 +74,18 @@ Mohon segera diproses!`
 
       // Target WhatsApp Number (6285340302129)
       const targetPhone = "6285340302129"
-      
+
       // 3. Clear cart and redirect directly to WhatsApp App
       clearCart()
       window.location.href = `whatsapp://send?phone=${targetPhone}&text=${encodeURIComponent(message)}`
-      
+
       // Fallback in case they don't have the app installed, redirect to web after a short delay
       setTimeout(() => {
         window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`, '_blank')
         // Go back to home after successful order placement
         window.location.href = '/'
       }, 2000)
-      
+
     } catch (err) {
       console.error(err)
       setIsSubmitting(false)
@@ -95,14 +95,14 @@ Mohon segera diproses!`
   if (items.length === 0) {
     return (
       <div className="container py-16 flex flex-col items-center text-center space-y-4">
-        <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center mb-4">
-          <ShoppingCart className="h-10 w-10 text-muted-foreground" />
+        <div className="h-32 w-32 rounded-full bg-muted flex items-center justify-center mb-4">
+          <ShoppingCart className="h-14 w-14 text-muted-foreground" />
         </div>
-        <h2 className="text-2xl font-bold">Your cart is empty</h2>
-        <p className="text-muted-foreground">Looks like you haven't added any items to your cart yet.</p>
+        <h2 className="text-2xl font-bold">Keranjangmu kosong</h2>
+        <p className="text-muted-foreground">Sepertinya kamu belum menambahkan item apapun ke keranjang.</p>
         <Link href="/">
           <Button className="mt-4 gap-2">
-            <ArrowLeft className="h-4 w-4" /> Back to Menu
+            <ArrowLeft className="h-4 w-4" /> Kembali Ke Menu
           </Button>
         </Link>
       </div>
@@ -112,7 +112,7 @@ Mohon segera diproses!`
   return (
     <div className="container py-8 max-w-5xl">
       <h1 className="text-3xl font-extrabold tracking-tight mb-8">Checkout</h1>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-7 space-y-6">
@@ -122,11 +122,11 @@ Mohon segera diproses!`
                 <div className="flex p-4 gap-4">
                   <div className="relative h-24 w-24 rounded-md overflow-hidden shrink-0 bg-muted">
                     {item.image_url && (
-                      <Image 
-                        src={item.image_url} 
-                        alt={item.name} 
-                        fill 
-                        className="object-cover" 
+                      <Image
+                        src={item.image_url}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
                       />
                     )}
                   </div>
@@ -136,29 +136,29 @@ Mohon segera diproses!`
                         <h3 className="font-semibold text-lg">{item.name}</h3>
                         <p className="text-primary font-medium">Rp {item.price.toLocaleString('id-ID')}</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="text-muted-foreground hover:text-destructive h-8 w-8"
                         onClick={() => removeItem(item.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 mt-4">
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span className="w-4 text-center font-medium">{item.quantity}</span>
-                      <Button 
-                        variant="outline" 
-                        size="icon" 
+                      <Button
+                        variant="outline"
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       >
@@ -180,45 +180,45 @@ Mohon segera diproses!`
           <form onSubmit={handleCheckout}>
             <Card className="border-primary/20 shadow-md">
               <CardHeader className="bg-primary/5 pb-4 border-b">
-                <CardTitle>Delivery Details</CardTitle>
+                <CardTitle>Detail Pengiriman</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
-                  <Input 
-                    id="name" 
-                    placeholder="e.g. Budi Santoso" 
-                    required 
+                  <Label htmlFor="name">Nama Lengkap<span className="text-destructive">*</span></Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g. Budi Santoso"
+                    required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="whatsapp">WhatsApp Number <span className="text-destructive">*</span></Label>
-                  <Input 
-                    id="whatsapp" 
-                    type="tel" 
-                    placeholder="e.g. 08123456789" 
-                    required 
+                  <Label htmlFor="whatsapp">Nomor WhatsApp <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="whatsapp"
+                    type="tel"
+                    placeholder="e.g. 08123456789"
+                    required
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="location">Stand / Location Detail <span className="text-destructive">*</span></Label>
-                  <Input 
-                    id="location" 
-                    placeholder="e.g. Stand B4, Fakultas Teknik" 
-                    required 
+                  <Label htmlFor="location">Stand / Lokasi Detail <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="location"
+                    placeholder="e.g. Stand B4, Fakultas Teknik"
+                    required
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Additional Notes</Label>
-                  <Textarea 
-                    id="notes" 
-                    placeholder="e.g. Extra spicy, don't use plastic..." 
+                  <Label htmlFor="notes">Catatan Tambahan</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="e.g. Pedas, jangan pakai plastik..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                   />
@@ -232,7 +232,7 @@ Mohon segera diproses!`
                     <span className="font-medium">Rp {subtotal.toLocaleString('id-ID')}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping Cost</span>
+                    <span className="text-muted-foreground">Ongkir</span>
                     <span className="font-medium">Rp {SHIPPING_COST.toLocaleString('id-ID')}</span>
                   </div>
                   <Separator />
@@ -243,12 +243,12 @@ Mohon segera diproses!`
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/30 pt-6">
-                <Button 
-                  type="submit" 
-                  className="w-full text-lg h-12" 
+                <Button
+                  type="submit"
+                  className="w-full text-lg h-12"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Processing..." : "Place Order via WhatsApp"}
+                  {isSubmitting ? "Processing..." : "Pesan via WhatsApp"}
                 </Button>
               </CardFooter>
             </Card>

@@ -101,7 +101,7 @@ export default function MenusPage() {
       const { data: publicUrlData } = supabase.storage
         .from('menu-images')
         .getPublicUrl(filePath)
-        
+
       imageUrl = publicUrlData.publicUrl
     }
 
@@ -147,7 +147,7 @@ export default function MenusPage() {
       .from('menus')
       .update({ is_available: !currentStatus })
       .eq('id', id)
-      
+
     if (!error) {
       setMenus(menus.map(m => m.id === id ? { ...m, is_available: !currentStatus } : m))
     }
@@ -155,7 +155,7 @@ export default function MenusPage() {
 
   const deleteMenu = async (id: number) => {
     if (!confirm("Are you sure you want to delete this item?")) return
-    
+
     const { error } = await supabase.from('menus').delete().eq('id', id)
     if (!error) {
       setMenus(menus.filter(m => m.id !== id))
@@ -166,8 +166,8 @@ export default function MenusPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Menu Management</h1>
-        <p className="text-muted-foreground">Add new items, edit, and manage availability.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Kelola Menu</h1>
+        <p className="text-muted-foreground">Kelola menu yang tersedia untuk dipesan.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -175,26 +175,26 @@ export default function MenusPage() {
         <Card className="lg:col-span-1 h-fit sticky top-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {editingId ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />} 
-              {editingId ? "Edit Item" : "Add New Item"}
+              {editingId ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+              {editingId ? "Edit Item" : "Tambah Item Baru"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAddOrUpdateMenu} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Item Name</Label>
+                <Label htmlFor="name">Nama Item</Label>
                 <Input id="name" required value={name} onChange={e => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">Price (Rp)</Label>
+                <Label htmlFor="price">Harga (Rp)</Label>
                 <Input id="price" type="number" required value={price} onChange={e => setPrice(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Deskripsi</Label>
                 <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="image">Image</Label>
+                <Label htmlFor="image">Gambar</Label>
                 <Input id="image" type="file" accept="image/*" onChange={handleImageChange} className="cursor-pointer" />
                 {imagePreview && (
                   <div className="mt-2 relative w-full h-32 rounded-md overflow-hidden border">
@@ -204,7 +204,7 @@ export default function MenusPage() {
               </div>
               <div className="flex gap-2">
                 <Button type="submit" className="flex-1" disabled={isUploading}>
-                  {isUploading ? "Saving..." : (editingId ? "Update Item" : "Add to Menu")}
+                  {isUploading ? "Menyimpan..." : (editingId ? "Update Item" : "Tambah Item")}
                 </Button>
                 {editingId && (
                   <Button type="button" variant="outline" onClick={resetForm} disabled={isUploading}>
@@ -221,7 +221,7 @@ export default function MenusPage() {
           {isLoading ? (
             <div className="flex justify-center py-12"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>
           ) : menus.length === 0 ? (
-            <Card className="p-12 text-center text-muted-foreground">No menu items found.</Card>
+            <Card className="p-12 text-center text-muted-foreground">Belum ada menu.</Card>
           ) : (
             menus.map((item) => (
               <Card key={item.id} className={!item.is_available ? 'opacity-70' : ''}>
@@ -241,10 +241,10 @@ export default function MenusPage() {
                       </div>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
                     </div>
-                    
+
                     <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t">
-                      <Button 
-                        variant={item.is_available ? "outline" : "default"} 
+                      <Button
+                        variant={item.is_available ? "outline" : "default"}
                         size="sm"
                         className={!item.is_available ? "bg-amber-600 hover:bg-amber-700 text-white" : ""}
                         onClick={() => toggleAvailability(item.id, item.is_available)}
@@ -252,17 +252,17 @@ export default function MenusPage() {
                         {item.is_available ? "Mark Sold Out" : "Mark Available"}
                       </Button>
                       <div className="ml-auto flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-blue-600 hover:bg-blue-600/10 hover:text-blue-700"
                           onClick={() => handleEditClick(item)}
                         >
                           <Pencil className="h-4 w-4 mr-2" /> Edit
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => deleteMenu(item.id)}
                         >

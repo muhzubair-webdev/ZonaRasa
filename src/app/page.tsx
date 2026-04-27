@@ -27,10 +27,10 @@ export default async function Home() {
     <div className="container py-8 space-y-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-          Expo Menu
+          Menu Zona Rasa
         </h1>
         <p className="text-lg text-muted-foreground max-w-2xl">
-          Order food and drinks easily without waiting in line. Choose your items, checkout, and we will prepare it for you!
+          Pesan makanan dan minuman dengan mudah tanpa perlu mengantri. Pilih item yang Anda inginkan, siapkan uangnya, dan kami akan menyiapkannya untuk Anda!
         </p>
       </div>
 

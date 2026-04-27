@@ -47,13 +47,13 @@ export function ProductCard({ product }: ProductCardProps) {
         </CardDescription>
       </CardHeader>
       <CardFooter className="p-4 pt-2 mt-auto">
-        <Button 
-          onClick={() => addItem(product)} 
+        <Button
+          onClick={() => addItem(product)}
           disabled={!product.is_available}
           className="w-full gap-2 font-semibold"
         >
           <ShoppingBag className="h-4 w-4" />
-          Add to Cart
+          Tambah ke Keranjang
         </Button>
       </CardFooter>
     </Card>

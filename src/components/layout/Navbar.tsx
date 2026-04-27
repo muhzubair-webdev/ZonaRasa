@@ -14,8 +14,8 @@ export default function Navbar() {
         <div className="flex gap-2 items-center">
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-extrabold text-2xl tracking-tight">
-              <span className="text-primary">Expo</span>
-              <span className="text-foreground">Eats</span>
+              <span className="text-primary">Zona</span>
+              <span className="text-foreground">Rasa</span>
             </span>
           </Link>
         </div>
