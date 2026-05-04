@@ -12,6 +12,12 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingCart, MapPin, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import dynamic from 'next/dynamic'
+
+const MapPicker = dynamic(() => import('@/components/MapPicker'), { 
+  ssr: false, 
+  loading: () => <div className="h-[300px] w-full flex items-center justify-center bg-muted rounded-md mt-2 border border-input"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> 
+})
 import {
   STAND_LAT,
   STAND_LON,
@@ -35,19 +41,13 @@ export default function CartPage() {
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationDenied, setLocationDenied] = useState(false)
-  const [useManualLocation, setUseManualLocation] = useState(false)
-  const [manualDistance, setManualDistance] = useState<string>("")
+  const [manualMode, setManualMode] = useState(false)
 
   // Calculate distance and shipping cost
-  const distance = userLat !== null && userLon !== null
+  const effectiveDistance = userLat !== null && userLon !== null
     ? haversineDistance(STAND_LAT, STAND_LON, userLat, userLon)
     : null
 
-  const manualDistanceMeters = useManualLocation && manualDistance
-    ? parseFloat(manualDistance) * 1000
-    : null
-
-  const effectiveDistance = distance ?? manualDistanceMeters
   const shippingCost = effectiveDistance !== null
     ? calculateShippingCost(effectiveDistance)
     : null
@@ -71,18 +71,18 @@ export default function CartPage() {
         setUserLon(position.coords.longitude)
         setIsLocating(false)
         setLocationDenied(false)
-        setUseManualLocation(false)
+        setManualMode(false)
       },
       (error) => {
         setIsLocating(false)
         if (error.code === error.PERMISSION_DENIED) {
           setLocationDenied(true)
-          setLocationError("Akses lokasi ditolak. Silakan masukkan jarak secara manual.")
+          setLocationError("Akses lokasi ditolak. Silakan pilih lokasi Anda pada peta.")
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          setLocationError("Lokasi tidak tersedia. Silakan masukkan jarak secara manual.")
+          setLocationError("Lokasi tidak tersedia. Silakan pilih lokasi pada peta.")
           setLocationDenied(true)
         } else {
-          setLocationError("Gagal mendapatkan lokasi. Silakan coba lagi atau masukkan jarak manual.")
+          setLocationError("Gagal mendapatkan lokasi. Silakan coba lagi atau pilih lokasi pada peta.")
           setLocationDenied(true)
         }
       },
@@ -332,8 +332,11 @@ Mohon segera diproses!`
                           <span className="font-medium">Rp {shippingCost.toLocaleString('id-ID')}</span>
                         )}
                       </div>
-                      {!useManualLocation && userLat !== null && (
+                      {!manualMode && userLat !== null && (
                         <p className="text-xs text-muted-foreground">📍 Lokasi otomatis terdeteksi</p>
+                      )}
+                      {manualMode && userLat !== null && (
+                        <p className="text-xs text-muted-foreground">📍 Lokasi dipilih secara manual pada peta</p>
                       )}
                     </div>
                   )}
@@ -345,33 +348,29 @@ Mohon segera diproses!`
                     </div>
                   )}
 
-                  {(locationDenied || useManualLocation) && (
-                    <div className="space-y-2">
-                      <Label htmlFor="manual-distance" className="text-sm">
-                        Masukkan perkiraan jarak (km) dari stand
+                  {(locationDenied || manualMode) && (
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-sm">
+                        Ketuk peta untuk menentukan lokasi Anda
                       </Label>
-                      <Input
-                        id="manual-distance"
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        placeholder="e.g. 1.5"
-                        value={manualDistance}
-                        onChange={(e) => {
-                          setManualDistance(e.target.value)
-                          // Clear GPS data if switching to manual
-                          setUserLat(null)
-                          setUserLon(null)
-                          setUseManualLocation(true)
-                        }}
+                      <MapPicker 
+                        initialLat={STAND_LAT} 
+                        initialLon={STAND_LON} 
+                        onLocationSelected={(lat, lon) => {
+                          setUserLat(lat)
+                          setUserLon(lon)
+                          setManualMode(true)
+                          setLocationDenied(false)
+                          setLocationError(null)
+                        }} 
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Gratis ongkir dalam radius 100 meter. Di luar itu Rp 2.000/km.
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Gratis ongkir dalam radius 100 meter dari stand. Di luar itu Rp 2.000/km.
                       </p>
                     </div>
                   )}
 
-                  {!isLocating && !locationDenied && effectiveDistance === null && (
+                  {!isLocating && !locationDenied && !manualMode && effectiveDistance === null && (
                     <Button
                       type="button"
                       variant="outline"
@@ -384,15 +383,15 @@ Mohon segera diproses!`
                     </Button>
                   )}
 
-                  {!isLocating && !locationDenied && effectiveDistance !== null && (
+                  {!isLocating && !locationDenied && !manualMode && effectiveDistance !== null && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       className="w-full text-xs text-muted-foreground"
-                      onClick={requestLocation}
+                      onClick={() => setManualMode(true)}
                     >
-                      Perbarui lokasi
+                      Atau pilih lokasi manual di peta
                     </Button>
                   )}
                 </div>
