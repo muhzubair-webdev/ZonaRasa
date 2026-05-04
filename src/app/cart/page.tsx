@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useCartStore } from "@/store/cart"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -8,9 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Trash2, Plus, Minus, ArrowLeft, ShoppingCart } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Plus, Minus, ArrowLeft, ShoppingCart, MapPin, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import {
+  STAND_LAT,
+  STAND_LON,
+  haversineDistance,
+  calculateShippingCost,
+  formatDistance,
+} from "@/lib/shipping"
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getCartTotal, clearCart } = useCartStore()
@@ -21,14 +29,81 @@ export default function CartPage() {
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Flat shipping cost for Phase 2
-  const SHIPPING_COST = 2000
+  // Geolocation state
+  const [userLat, setUserLat] = useState<number | null>(null)
+  const [userLon, setUserLon] = useState<number | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [locationDenied, setLocationDenied] = useState(false)
+  const [useManualLocation, setUseManualLocation] = useState(false)
+  const [manualDistance, setManualDistance] = useState<string>("")
+
+  // Calculate distance and shipping cost
+  const distance = userLat !== null && userLon !== null
+    ? haversineDistance(STAND_LAT, STAND_LON, userLat, userLon)
+    : null
+
+  const manualDistanceMeters = useManualLocation && manualDistance
+    ? parseFloat(manualDistance) * 1000
+    : null
+
+  const effectiveDistance = distance ?? manualDistanceMeters
+  const shippingCost = effectiveDistance !== null
+    ? calculateShippingCost(effectiveDistance)
+    : null
+
   const subtotal = getCartTotal()
-  const total = subtotal + (items.length > 0 ? SHIPPING_COST : 0)
+  const total = subtotal + (shippingCost ?? 0)
+
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Browser tidak mendukung geolokasi")
+      setLocationDenied(true)
+      return
+    }
+
+    setIsLocating(true)
+    setLocationError(null)
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLat(position.coords.latitude)
+        setUserLon(position.coords.longitude)
+        setIsLocating(false)
+        setLocationDenied(false)
+        setUseManualLocation(false)
+      },
+      (error) => {
+        setIsLocating(false)
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationDenied(true)
+          setLocationError("Akses lokasi ditolak. Silakan masukkan jarak secara manual.")
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setLocationError("Lokasi tidak tersedia. Silakan masukkan jarak secara manual.")
+          setLocationDenied(true)
+        } else {
+          setLocationError("Gagal mendapatkan lokasi. Silakan coba lagi atau masukkan jarak manual.")
+          setLocationDenied(true)
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }, [])
+
+  // Auto-request location on mount
+  useEffect(() => {
+    if (items.length > 0) {
+      requestLocation()
+    }
+  }, [items.length, requestLocation])
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
     if (items.length === 0) return
+    if (shippingCost === null) {
+      alert("Silakan tentukan lokasi Anda terlebih dahulu untuk menghitung ongkir.")
+      return
+    }
     setIsSubmitting(true)
 
     try {
@@ -40,13 +115,13 @@ export default function CartPage() {
         notes: notes,
         items: items,
         total_price: total,
-        shipping_cost: SHIPPING_COST,
+        shipping_cost: shippingCost,
         status: 'pending'
       })
 
       if (error) {
         console.error("Failed to save order:", error)
-        alert("Failed to submit order. Please try again.")
+        alert("Gagal mengirim pesanan. Silakan coba lagi.")
         setIsSubmitting(false)
         return
       }
@@ -55,6 +130,9 @@ export default function CartPage() {
       const orderListText = items.map(
         item => `- ${item.quantity}x ${item.name} (Rp ${(item.price * item.quantity).toLocaleString('id-ID')})`
       ).join('\n')
+
+      const distanceText = effectiveDistance !== null ? formatDistance(effectiveDistance) : '-'
+      const shippingText = shippingCost === 0 ? 'Gratis' : `Rp ${shippingCost.toLocaleString('id-ID')}`
 
       const message = `*Zona Rasa - NEW ORDER*
 
@@ -67,22 +145,22 @@ export default function CartPage() {
 ${orderListText}
 
 *Subtotal:* Rp ${subtotal.toLocaleString('id-ID')}
-*Ongkir:* Rp ${SHIPPING_COST.toLocaleString('id-ID')}
+*Jarak:* ${distanceText}
+*Ongkir:* ${shippingText}
 *Total:* Rp ${total.toLocaleString('id-ID')}
 
 Mohon segera diproses!`
 
-      // Target WhatsApp Number (6285340302129)
+      // Target WhatsApp Number
       const targetPhone = "6285340302129"
 
       // 3. Clear cart and redirect directly to WhatsApp App
       clearCart()
       window.location.href = `whatsapp://send?phone=${targetPhone}&text=${encodeURIComponent(message)}`
 
-      // Fallback in case they don't have the app installed, redirect to web after a short delay
+      // Fallback in case they don't have the app installed
       setTimeout(() => {
         window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`, '_blank')
-        // Go back to home after successful order placement
         window.location.href = '/'
       }, 2000)
 
@@ -224,6 +302,101 @@ Mohon segera diproses!`
                   />
                 </div>
 
+                {/* Shipping Location Section */}
+                <div className="rounded-lg border border-dashed p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="font-medium text-sm">Lokasi & Ongkir</span>
+                  </div>
+
+                  {isLocating && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Mendapatkan lokasi Anda...
+                    </div>
+                  )}
+
+                  {effectiveDistance !== null && shippingCost !== null && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Jarak dari stand</span>
+                        <span className="font-medium">{formatDistance(effectiveDistance)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Ongkir</span>
+                        {shippingCost === 0 ? (
+                          <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+                            Gratis!
+                          </Badge>
+                        ) : (
+                          <span className="font-medium">Rp {shippingCost.toLocaleString('id-ID')}</span>
+                        )}
+                      </div>
+                      {!useManualLocation && userLat !== null && (
+                        <p className="text-xs text-muted-foreground">📍 Lokasi otomatis terdeteksi</p>
+                      )}
+                    </div>
+                  )}
+
+                  {locationError && (
+                    <div className="flex items-start gap-2 text-sm text-amber-600 bg-amber-500/10 p-3 rounded-md border border-amber-500/20">
+                      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>{locationError}</span>
+                    </div>
+                  )}
+
+                  {(locationDenied || useManualLocation) && (
+                    <div className="space-y-2">
+                      <Label htmlFor="manual-distance" className="text-sm">
+                        Masukkan perkiraan jarak (km) dari stand
+                      </Label>
+                      <Input
+                        id="manual-distance"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        placeholder="e.g. 1.5"
+                        value={manualDistance}
+                        onChange={(e) => {
+                          setManualDistance(e.target.value)
+                          // Clear GPS data if switching to manual
+                          setUserLat(null)
+                          setUserLon(null)
+                          setUseManualLocation(true)
+                        }}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Gratis ongkir dalam radius 100 meter. Di luar itu Rp 2.000/km.
+                      </p>
+                    </div>
+                  )}
+
+                  {!isLocating && !locationDenied && effectiveDistance === null && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={requestLocation}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      Gunakan Lokasi Saya
+                    </Button>
+                  )}
+
+                  {!isLocating && !locationDenied && effectiveDistance !== null && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs text-muted-foreground"
+                      onClick={requestLocation}
+                    >
+                      Perbarui lokasi
+                    </Button>
+                  )}
+                </div>
+
                 <Separator className="my-6" />
 
                 <div className="space-y-3">
@@ -233,7 +406,13 @@ Mohon segera diproses!`
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Ongkir</span>
-                    <span className="font-medium">Rp {SHIPPING_COST.toLocaleString('id-ID')}</span>
+                    <span className="font-medium">
+                      {shippingCost === null
+                        ? "Menunggu lokasi..."
+                        : shippingCost === 0
+                          ? "Gratis"
+                          : `Rp ${shippingCost.toLocaleString('id-ID')}`}
+                    </span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-lg font-bold">
@@ -246,9 +425,9 @@ Mohon segera diproses!`
                 <Button
                   type="submit"
                   className="w-full text-lg h-12"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || shippingCost === null}
                 >
-                  {isSubmitting ? "Processing..." : "Pesan via WhatsApp"}
+                  {isSubmitting ? "Memproses..." : "Pesan via WhatsApp"}
                 </Button>
               </CardFooter>
             </Card>

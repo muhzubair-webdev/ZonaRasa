@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Expo Eats - Fast & Easy Ordering",
-  description: "Platform for ordering food and products at the campus expo.",
+  title: "Zona Rasa | Temukan Zona Nikmatmu",
+  description: "Platform pemesanan online untuk stan Zona Rasa - Universitas Sembilanbelas November.",
 };
 
 export default function RootLayout({

@@ -1,12 +1,18 @@
 "use client"
 import Link from "next/link"
-import { ShoppingCart } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { ShoppingCart, Search } from "lucide-react"
 import { useCartStore } from "@/store/cart"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 export default function Navbar() {
   const cartCount = useCartStore((state) => state.getCartCount())
+  const pathname = usePathname()
+
+  // Hide entire navbar on admin routes (admin has its own layout/header)
+  const isAdminRoute = pathname.startsWith('/admin')
+  if (isAdminRoute) return null
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
@@ -19,7 +25,13 @@ export default function Navbar() {
             </span>
           </Link>
         </div>
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 sm:gap-4">
+          <Link href="/track">
+            <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Lacak Pesanan</span>
+            </Button>
+          </Link>
           <Link href="/cart">
             <Button variant="outline" className="relative h-10 w-10 rounded-full border-primary/20 bg-primary/5 hover:bg-primary/10 hover:text-primary transition-colors">
               <ShoppingCart className="h-5 w-5" />

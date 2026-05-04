@@ -17,7 +17,11 @@ export default async function Home() {
     if (error) {
       console.warn("Failed to fetch from Supabase:", error.message)
     } else if (data && data.length > 0) {
-      products = data
+      // Sort: available items first, sold-out items at the bottom
+      products = data.sort((a, b) => {
+        if (a.is_available === b.is_available) return 0
+        return a.is_available ? -1 : 1
+      })
     }
   } catch (err) {
     console.error("Error fetching menus:", err)
